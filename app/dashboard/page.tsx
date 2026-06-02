@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, shipments, tokens, type Customer, type ShipmentSummary } from "@/lib/api";
 import { Package, ChevronRight, LogOut, Search, Clock, CheckCircle2, AlertCircle, Truck, MapPin } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const STATUS_COLOR: Record<string, string> = {
   draft:         "bg-slate-100 text-slate-600",
@@ -45,8 +46,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!tokens.get()) { router.replace("/login"); return; }
-    Promise.all([auth.me(), shipments.list()])
-      .then(([c, s]) => { setCustomer(c); setList(s); })
+    auth.me()
+      .then(c => {
+        setCustomer(c);
+        return shipments.list().catch(() => [] as ShipmentSummary[]);
+      })
+      .then(s => setList(s))
       .catch(() => router.replace("/login"))
       .finally(() => setLoading(false));
   }, [router]);
@@ -73,7 +78,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 pb-24">
       {/* Header */}
       <div className="bg-[#1a1a2e] px-4 pt-8 pb-6">
         <div className="max-w-lg mx-auto">
@@ -164,6 +169,7 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

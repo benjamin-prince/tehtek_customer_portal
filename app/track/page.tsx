@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { tracking as trackApi } from "@/lib/api";
 import { Search, ArrowLeft, MapPin, CheckCircle2, Clock, Truck, AlertCircle } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const EVENT_LABEL: Record<string, string> = {
   picked_up_from_sender:  "Collecté chez l'expéditeur",
@@ -40,7 +41,7 @@ export default function TrackPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 pb-24">
       <div className="bg-[#1a1a2e] px-4 pt-8 pb-6">
         <div className="max-w-lg mx-auto">
           <a href="/login" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors text-sm mb-4">
@@ -134,6 +135,7 @@ export default function TrackPage() {
           </div>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

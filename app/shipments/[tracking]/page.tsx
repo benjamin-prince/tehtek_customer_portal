@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { shipments, tokens, type ShipmentDetail } from "@/lib/api";
-import { ArrowLeft, MapPin, Package, CheckCircle2, Clock, Truck, Weight, Shield, AlertCircle } from "lucide-react";
+import { shipments, tokens, type ShipmentDetail, type ShipmentInvoice } from "@/lib/api";
+import { ArrowLeft, MapPin, Package, CheckCircle2, Clock, Truck, Weight, Shield, AlertCircle, FileText, CreditCard } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const EVENT_LABEL: Record<string, string> = {
   picked_up_from_sender:  "Collecté chez l'expéditeur",
@@ -58,13 +59,17 @@ export default function ShipmentDetailPage() {
   const router   = useRouter();
   const { tracking } = useParams<{ tracking: string }>();
   const [shipment, setShipment] = useState<ShipmentDetail | null>(null);
+  const [invoice,  setInvoice]  = useState<ShipmentInvoice | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState<string | null>(null);
 
   useEffect(() => {
     if (!tokens.get()) { router.replace("/login"); return; }
     shipments.get(tracking)
-      .then(setShipment)
+      .then(s => {
+        setShipment(s);
+        shipments.getInvoice(tracking).then(setInvoice).catch(() => setInvoice(null));
+      })
       .catch(e => setError(e instanceof Error ? e.message : "Expédition introuvable"))
       .finally(() => setLoading(false));
   }, [tracking, router]);
@@ -248,7 +253,51 @@ export default function ShipmentDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Invoice */}
+        {invoice && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <FileText className="w-4 h-4 text-orange-500" /> Facture
+            </h2>
+            <div className={`rounded-xl px-4 py-3 border ${invoice.status === "paid" ? "bg-green-50 border-green-200" : "bg-slate-50 border-slate-200"}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs font-mono text-slate-400">{invoice.invoice_number}</p>
+                  <p className={`text-lg font-black mt-0.5 ${invoice.status === "paid" ? "text-green-800" : "text-slate-900"}`}>
+                    {Number(invoice.total).toLocaleString("fr-CM")} {invoice.currency}
+                  </p>
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                  invoice.status === "paid"    ? "bg-green-100 text-green-700" :
+                  invoice.status === "partial" ? "bg-amber-100 text-amber-700" :
+                  "bg-slate-100 text-slate-600"
+                }`}>
+                  {invoice.status === "paid" ? "PAYÉ ✓" : invoice.status === "partial" ? "Partiel" : "En attente"}
+                </span>
+              </div>
+              {invoice.paid_amount > 0 && invoice.status !== "paid" && (
+                <div className="mt-2 space-y-1">
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(invoice.paid_amount / invoice.total * 100, 100)}%` }} />
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Payé : {Number(invoice.paid_amount).toLocaleString("fr-CM")} {invoice.currency}</span>
+                    <span className="text-red-500 font-semibold">Reste : {Number(invoice.balance_due).toLocaleString("fr-CM")} {invoice.currency}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {invoice.status !== "paid" && (
+              <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2.5 text-xs text-orange-700">
+                <CreditCard className="w-4 h-4 flex-shrink-0" />
+                <span>Pour effectuer un paiement, contactez-nous sur WhatsApp ou par email.</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      <BottomNav />
     </div>
   );
 }

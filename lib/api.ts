@@ -63,6 +63,8 @@ export const auth = {
       "/shop/auth/register", { method: "POST", body: JSON.stringify(data) }
     ),
   me: () => apiFetch<Customer>("/shop/auth/me"),
+  patchMe: (data: Partial<{ first_name: string; last_name: string; phone: string; whatsapp: string }>) =>
+    apiFetch<Customer>("/shop/auth/me", { method: "PATCH", body: JSON.stringify(data) }),
   logout: (refresh_token: string) =>
     apiFetch<void>("/shop/auth/logout", { method: "POST", body: JSON.stringify({ refresh_token }) }),
 };
@@ -70,8 +72,16 @@ export const auth = {
 // ── Shipments ─────────────────────────────────────────────────────────────────
 
 export const shipments = {
-  list: () => apiFetch<ShipmentSummary[]>("/shop/shipments"),
-  get:  (tracking: string) => apiFetch<ShipmentDetail>(`/shop/shipments/${tracking}`),
+  list:       ()                => apiFetch<ShipmentSummary[]>("/shop/auth/shipments"),
+  get:        (tracking: string) => apiFetch<ShipmentDetail>(`/shop/auth/shipments/${tracking}`),
+  getInvoice: (tracking: string) => apiFetch<ShipmentInvoice>(`/shop/auth/shipments/${tracking}/invoice`),
+};
+
+export const pickupRequests = {
+  list:   ()                      => apiFetch<PickupRequestSummary[]>("/shop/auth/pickup-requests"),
+  create: (data: PickupRequestIn) => apiFetch<PickupRequestSummary>("/shop/auth/pickup-requests", {
+    method: "POST", body: JSON.stringify(data),
+  }),
 };
 
 // ── Public tracking (no auth) ─────────────────────────────────────────────────
@@ -109,6 +119,41 @@ export interface ShipmentSummary {
   last_event?: string;
   last_event_at?: string;
   last_location?: string;
+}
+
+export interface ShipmentInvoice {
+  id: number;
+  invoice_number: string;
+  status: string;
+  total: number;
+  paid_amount: number;
+  balance_due: number;
+  currency: string;
+  created_at: string;
+  payments: { amount: number; currency: string; payment_method: string; confirmed_at?: string }[];
+}
+
+export interface PickupRequestSummary {
+  id: number;
+  pickup_number: string;
+  status: string;
+  address: string;
+  city?: string;
+  notes?: string;
+  created_at: string;
+  shipment_id?: number;
+}
+
+export interface PickupRequestIn {
+  address: string;
+  city?: string;
+  content_description?: string;
+  estimated_weight_kg?: number;
+  destination_country?: string;
+  receiver_name?: string;
+  receiver_phone?: string;
+  preferred_date?: string;
+  notes?: string;
 }
 
 export interface ShipmentDetail extends ShipmentSummary {
