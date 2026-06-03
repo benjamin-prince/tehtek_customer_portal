@@ -131,9 +131,9 @@ export default function ProfilePage() {
             className="flex items-center gap-3 py-2.5 px-3 bg-green-50 border border-green-200 rounded-xl text-sm font-semibold text-green-700 hover:bg-green-100 transition-colors">
             <span className="text-lg">💬</span> WhatsApp : +237 693 58 11 33
           </a>
-          <a href="mailto:contact@tehtek.com"
+          <a href="mailto:info@tehtek.com"
             className="flex items-center gap-3 py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
-            <Mail className="w-4 h-4 text-slate-500" /> contact@tehtek.com
+            <Mail className="w-4 h-4 text-slate-500" /> info@tehtek.com
           </a>
         </div>
 
